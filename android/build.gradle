@@ -1,0 +1,49 @@
+group 'com.jgen.chainway.chainway_plugin'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.2.0'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        flatDir {
+            dirs project(':chainway_plugin').file('libs')
+        }
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 31
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 16
+    }
+}
+
+dependencies {
+
+//    compileOnly fileTree(dir: 'libs', include: ['*.aar'])
+//    implementation fileTree(dir: 'libs', include: ['*.aar'])
+//    api fileTree(include: ['DeviceAPI_ver20230301_release.aar'], dir: 'libs' )
+    implementation(name: 'DeviceAPI_ver20230301_release', ext: 'aar')
+    implementation 'androidx.activity:activity:1.2.3'
+    implementation 'com.google.zxing:core:3.5.1'
+
+}
