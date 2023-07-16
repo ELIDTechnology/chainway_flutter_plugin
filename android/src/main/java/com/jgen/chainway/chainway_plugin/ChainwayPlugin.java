@@ -108,75 +108,38 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     Log.e(TAG,"method "+ call.method);
-    if(call.method.equals("barcode_init")){
-      if(barcodeDecoder.isOpen()){
-        result.success(true);
-      }else{
-        barcodeDecoder.open(context);
-        Log.e(TAG,"open()==========================:"+ barcodeDecoder.open(context));
-        result.success(true);
-      }
-    }
-     if(call.method.equals("scan")){
-       Log.e(TAG,"SCANNING"+ barcodeDecoder);
+
+    switch (call.method){
+      case "barcode_init":
+        if(barcodeDecoder.isOpen()){
+          result.success(true);
+        }else{
+          barcodeDecoder.open(context);
+          Log.e(TAG,"open()==========================:"+ barcodeDecoder.open(context));
+          result.success(true);
+        }
+      case "barcode_scan":
         start();
-    }
-     if(call.method.equals("barcode_stop_scan")){
-      stopScan();
-    }
-    if(call.method.equals("barcode_close")){
-      close();
-    }
-
-    if(call.method.equals("init_printer")){
-
-      mPrinter.init(0);
-//      mPrinter.clearCache();//清
-//      mPrinter.free();
-//      mPrinter.setPrintGrayLevel(3);// 空缓存区
-//      mPrinter.setPrintSpeed(4);// 空
-
-      Log.e(TAG,"isPowerOn"+   mPrinter.isPowerOn());
-    }
-
-    if(call.method.equals("print_speed")){
-      Integer arg = call.argument("speed");
-      Log.e(TAG,"speed"+ arg);
-      mPrinter.setPrintSpeed(arg);
-    }
-    if(call.method.equals("print_qr_code")){
-      mPrinter.setPrintLeftMargin(50);
-      mPrinter.setPrintRightMargin(50);
-      mPrinter.setPrintRowSpacing(33);
-      Bitmap bitmap=generateBitmap("HELLO WORLD",320,320);
-      Log.e(TAG,"bitmap"+ bitmap);
-
-      mPrinter.print(bitmap);
-    }
-
-    if(call.method.equals("print_receipt")){
-      mPrinter.setPrintLeftMargin(50);
-      mPrinter.setPrintRightMargin(50);
-      mPrinter.setPrintRowSpacing(33);
-      mPrinter.print("STORE NAME\n");
-      mPrinter.print("Address\n");
-      mPrinter.print("Phone number\n");
-      mPrinter.print("-------------------------------\n\n");
-
-      // Set alignment to left
-
-      mPrinter.print("Item Description      Price Qty\n");
-      mPrinter.print("-------------------------------\n");
-      mPrinter.print("Item 1                $10   2\n");
-      mPrinter.print("Item 2                $5    5\n");
-
-      // Print total, tax, and other details
-      mPrinter.print("-------------------------------\n");
-
-      mPrinter.print("Total:                      $50\n");
-      mPrinter.print("Tax:                          $5\n");
-      mPrinter.print("-------------------------------\n");
-      mPrinter.print("Grand Total:                 $55\n");
+      case "barcode_stop_scan":
+        stopScan();
+      case "barcode_close":
+        close();
+      case "printer_init":
+        mPrinter.init(0);
+        mPrinter.setPrintLeftMargin(50);
+        mPrinter.setPrintRightMargin(50);
+        mPrinter.setPrintRowSpacing(33);
+        result.success(true);
+      case "printer_speed":
+        Integer arg = call.argument("speed");
+        mPrinter.setPrintSpeed(arg);
+      case "print_qr_code":
+        String barcode_details = call.argument("barcode_details");
+        Bitmap bitmap=generateBitmap(barcode_details,320,320);
+        mPrinter.print(bitmap);
+      case "print_receipt":
+        String receipt_details = call.argument("receipt_details");
+        mPrinter.print(receipt_details);
     }
 
   }
@@ -205,36 +168,6 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
     return null;
   }
 
-
-
-//  private void handleNfcStartSession(MethodCall call, MethodChannel.Result result) {
-//    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-//      result.error("unavailable", "Requires API level 19.", null);
-//    } else {
-//      NfcAdapter adapter = NfcAdapter.getDefaultAdapter(activity);
-//      if(adapter == null) {
-//        result.error("unavailable", "NFC is not available for device.", null);
-//        return;
-//      }
-//      adapter.enableReaderMode(activity, tag -> {
-//        final String handle = UUID.randomUUID().toString();
-//        tags.put(handle, tag);
-//        activity.runOnUiThread(() -> {
-//          HashMap<String, Object> tagMap = (HashMap<String, Object>) new Translator().getTagMap(tag);
-//          Log.e(TAG,"->"+   tagMap);
-//          tagMap.put("handle", handle);
-//          channel.invokeMethod("onDiscovered", tagMap);
-//
-//        });
-//      }, new Translator().getFlags((List<String>) call.argument("pollingOptions")), null);
-//      result.success(null);
-//    }
-//  }
-
-
-
-
-
   private void start(){
     barcodeDecoder.startScan();
   }
@@ -251,26 +184,57 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
     channel.setMethodCallHandler(null);
   }
 
-
-
   @Override
   public void onListen(Object arguments, EventChannel.EventSink events) {
-
     eventSink = events;
     barcodeDecoder.setDecodeCallback(barcodeEntity -> {
-      Log.e(TAG,"BarcodeDecoder==========================:"+barcodeEntity.getResultCode());
       if(barcodeEntity.getResultCode() == BarcodeDecoder.DECODE_SUCCESS){
-
-        Log.e(TAG,"data==========================:"+barcodeEntity.getBarcodeData());
-
         events.success(barcodeEntity.getBarcodeData());
       }else{
         events.success(null);
       }
     });
 
+    printer.setPrinterStatusCallBack(new Printer.PrinterStatusCallBack() {
+      @Override
+      public void message(Printer.PrinterStatus printerStatus) {
+        switch (printerStatus) {
+          case NORMAL://正常:
 
-  }
+            break;
+          case OVERPRESSURE://过压
+
+            break;
+          case LACKOFPAPER://缺纸
+
+            break;
+          case OVERHEATING://过热
+
+            break;
+          case PRESSUREAXISOPEN://压轴打开
+
+            break;
+          case PAPERSTUCK://卡纸
+
+            break;
+          case SLICINGERROR://切片错误
+
+            break;
+          case PAPERFINISH://打印机纸将尽
+
+            break;
+          case CANCELPAPER://打印机用户未取纸
+
+            break;
+          case LEISURE:
+
+            break;
+          case UNLEISURED:
+
+
+        }
+
+      }});}
 
 
   @Override
