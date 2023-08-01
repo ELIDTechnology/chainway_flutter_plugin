@@ -11,6 +11,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
@@ -34,6 +40,7 @@ import com.rscja.deviceapi.Printer;
 import com.rscja.deviceapi.exception.ConfigurationException;
 import com.rscja.deviceapi.exception.PrinterBarcodeInvalidException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -59,6 +66,9 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /** ChainwayPlugin */
 public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler, ActivityAware{
   /// The MethodChannel that will the communication between Flutter and native Android
@@ -67,24 +77,11 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
   /// when the Flutter Engine is detached from the Activity
   private MethodChannel channel;
   private EventChannel eventChannel;
-  private EventChannel.EventSink eventSink;
 
   BarcodeDecoder barcodeDecoder= BarcodeFactory.getInstance().getBarcodeDecoder();
-  private NfcAdapter nfcAdapter;
   private Context context;
   private Printer mPrinter;
-  private Intent mIntent = null;
   String TAG="CHAINWAY_FLUTTER";
-  private Activity activity;
-  private MethodChannel.Result pendingResult;
-
-  private ActivityResultLauncher<Intent> resultLauncher;
-
-  private static final int REQUEST_CODE = 1234; // choose any number
-  private static final int NFC_PERMISSION_REQ_CODE = 1001;
-  private static final int NFC_READER_REQ_CODE = 1002;
-  private PendingIntent pendingIntent;
-  private ActivityPluginBinding activityPluginBinding;
   private Map<String, Tag> tags = new HashMap<>();
   ImageView iv2D;
 
@@ -98,7 +95,7 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
 
     try {
       mPrinter = Printer.getInstance();
-
+      mPrinter.init(0);
     } catch (ConfigurationException e) {
       throw new RuntimeException(e);
     }
@@ -134,9 +131,35 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         Integer arg = call.argument("speed");
         mPrinter.setPrintSpeed(arg);
       case "print_qr_code":
-        String barcode_details = call.argument("barcode_details");
-        Bitmap bitmap=generateBitmap(barcode_details,320,320);
+        String barcode_details = call.argument("print_qr_code");
+        Log.e("EWQEOWPQ", barcode_details);
+        Bitmap bitmap=generateBitmap(barcode_details.toString(),320,320);
         mPrinter.print(bitmap);
+
+      case "print_bitmap":
+        byte[] byteArray = call.argument("header");
+        String body = call.argument("body");
+        String qr = call.argument("qr");
+        String footer = call.argument("footer");
+        Bitmap a = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+        Matrix matrix = new Matrix();
+        int width = a.getWidth();
+        int height = a.getHeight();
+        int newWidth = 384;
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight =scaleWidth;
+        matrix.postScale(scaleWidth, scaleHeight);
+        Bitmap headerBitmap = Bitmap.createBitmap(a, 0, 0, width,height, matrix, true);
+        Bitmap qrCode = generateBitmap(qr.toString(),400,400);
+        mPrinter.clearCache();
+        mPrinter.setPrintRowSpacing(0);
+        mPrinter.print(headerBitmap);
+        mPrinter.setFeedRow(1);
+        mPrinter.print(body);
+        mPrinter.print(qrCode);
+        mPrinter.setFeedRow(2);
+        mPrinter.print(footer);
+
       case "print_receipt":
         String receipt_details = call.argument("receipt_details");
         mPrinter.print(receipt_details);
@@ -186,7 +209,6 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
 
   @Override
   public void onListen(Object arguments, EventChannel.EventSink events) {
-    eventSink = events;
     barcodeDecoder.setDecodeCallback(barcodeEntity -> {
       if(barcodeEntity.getResultCode() == BarcodeDecoder.DECODE_SUCCESS){
         events.success(barcodeEntity.getBarcodeData());
@@ -195,64 +217,25 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
       }
     });
 
-    printer.setPrinterStatusCallBack(new Printer.PrinterStatusCallBack() {
-      @Override
-      public void message(Printer.PrinterStatus printerStatus) {
-        switch (printerStatus) {
-          case NORMAL://正常:
-
-            break;
-          case OVERPRESSURE://过压
-
-            break;
-          case LACKOFPAPER://缺纸
-
-            break;
-          case OVERHEATING://过热
-
-            break;
-          case PRESSUREAXISOPEN://压轴打开
-
-            break;
-          case PAPERSTUCK://卡纸
-
-            break;
-          case SLICINGERROR://切片错误
-
-            break;
-          case PAPERFINISH://打印机纸将尽
-
-            break;
-          case CANCELPAPER://打印机用户未取纸
-
-            break;
-          case LEISURE:
-
-            break;
-          case UNLEISURED:
-
-
-        }
-
-      }});}
+}
 
 
   @Override
   public void onCancel(Object arguments) {
-    eventSink = null;
+
     barcodeDecoder.close();
   }
 
   @Override
   public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-    activity = binding.getActivity();
+
   }
 
 
 
   @Override
   public void onDetachedFromActivityForConfigChanges() {
-    activity = null;
+
   }
 
   @Override
@@ -261,8 +244,7 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
   }
 
   @Override
-  public void onDetachedFromActivity() {
-    activity = null;
+  public void onDetachedFromActivity(){
   }
 
 

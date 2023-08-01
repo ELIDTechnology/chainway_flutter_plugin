@@ -27,7 +27,24 @@ class ChainwayPlugin {
   }
 
   Future<void> print_test() async {
-    return await platform.invokeMethod('print_qr_code');
+    return await platform.invokeMethod('print_qr_code',
+        {'print_qr_code': "HELLO WEIUWIQEUWIOQUEIOWUEIOWUYEIORWUYQR UWYRYW"});
+  }
+
+  Future<void> print_bitmap(
+      {required String body,
+      required String qrCode,
+      required String footer}) async {
+    final ByteData bytes = await rootBundle.load('assets/test.jpg');
+    final Uint8List list = bytes.buffer.asUint8List();
+
+    var request = {
+      "header": list,
+      "body": body,
+      "qr": qrCode,
+      "footer": footer,
+    };
+    return await platform.invokeMethod('print_bitmap', request);
   }
 
   Future<void> print_receipt() async {
@@ -36,6 +53,11 @@ class ChainwayPlugin {
 
   static Stream<String> get barcodeStream {
     const eventChannel = EventChannel('chainway_stream');
+    return eventChannel.receiveBroadcastStream().cast<String>();
+  }
+
+  static Stream<String> get printerCallback {
+    const eventChannel = EventChannel('printer_callback');
     return eventChannel.receiveBroadcastStream().cast<String>();
   }
 }
