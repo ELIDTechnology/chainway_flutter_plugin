@@ -2,6 +2,8 @@ package com.jgen.chainway.chainway_plugin;
 
 import static android.Manifest.permission.NFC;
 
+import static com.rscja.deviceapi.Printer.PrinterStatus.PAPERFINISH;
+
 import android.app.Activity;
 import android.app.Application;
 import android.app.PendingIntent;
@@ -96,6 +98,7 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
     try {
       mPrinter = Printer.getInstance();
       mPrinter.init(0);
+
     } catch (ConfigurationException e) {
       throw new RuntimeException(e);
     }
@@ -153,13 +156,17 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         Bitmap qrCode = generateBitmap(qr.toString(),400,400);
         mPrinter.clearCache();
         mPrinter.setPrintRowSpacing(0);
+        mPrinter.setPrintRowSpacing(14);
         mPrinter.print(headerBitmap);
         mPrinter.setFeedRow(1);
         mPrinter.print(body);
+        mPrinter.setFeedRow(1);
         mPrinter.print(qrCode);
-        mPrinter.setFeedRow(2);
+        mPrinter.setFeedRow(1);
+        mPrinter.setPrintRowSpacing(8);
         mPrinter.print(footer);
-
+        mPrinter.setFeedRow(1);
+        result.success("DONE");
       case "print_receipt":
         String receipt_details = call.argument("receipt_details");
         mPrinter.print(receipt_details);
@@ -216,6 +223,23 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         events.success(null);
       }
     });
+
+//    mPrinter.setPrinterStatusCallBack(printerStatus -> {
+//      switch (printerStatus) {
+//        case PAPERFINISH:
+//          events.success("PAPERFINISH");
+//        case NORMAL:
+//          events.success("NORMAL");
+//        case LACKOFPAPER:
+//          events.success("LACK OF PAPER");
+//
+//
+//
+//      }
+//    });
+
+
+
 
 }
 

@@ -31,7 +31,7 @@ class ChainwayPlugin {
         {'print_qr_code': "HELLO WEIUWIQEUWIOQUEIOWUEIOWUYEIORWUYQR UWYRYW"});
   }
 
-  Future<void> print_bitmap(
+  Future<String> print_bitmap(
       {required Uint8List header,
       required String body,
       required String qrCode,
