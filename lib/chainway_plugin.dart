@@ -32,14 +32,12 @@ class ChainwayPlugin {
   }
 
   Future<void> print_bitmap(
-      {required String body,
+      {required Uint8List header,
+      required String body,
       required String qrCode,
       required String footer}) async {
-    final ByteData bytes = await rootBundle.load('assets/test.jpg');
-    final Uint8List list = bytes.buffer.asUint8List();
-
     var request = {
-      "header": list,
+      "header": header,
       "body": body,
       "qr": qrCode,
       "footer": footer,
