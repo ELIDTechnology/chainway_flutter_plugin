@@ -49,7 +49,7 @@ class ChainwayPlugin {
     return await platform.invokeMethod('print_receipt');
   }
 
-  static Stream<String> get barcodeStream {
+  Stream<String> get barcodeStream {
     const eventChannel = EventChannel('chainway_stream');
     return eventChannel.receiveBroadcastStream().cast<String>();
   }

@@ -117,27 +117,33 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
           barcodeDecoder.open(context);
           result.success(true);
         }
+        break;
       case "barcode_scan":
         start();
+        break;
       case "barcode_stop_scan":
         stopScan();
+        break;
       case "barcode_close":
         close();
+        break;
       case "printer_init":
         mPrinter.init(0);
         mPrinter.setPrintLeftMargin(50);
         mPrinter.setPrintRightMargin(50);
         mPrinter.setPrintRowSpacing(33);
         result.success(true);
+        break;
       case "printer_speed":
         Integer arg = call.argument("speed");
         mPrinter.setPrintSpeed(arg);
+        break;
       case "print_qr_code":
         String barcode_details = call.argument("print_qr_code");
         Log.e("EWQEOWPQ", barcode_details);
         Bitmap bitmap=generateBitmap(barcode_details.toString(),320,320);
         mPrinter.print(bitmap);
-
+        break;
       case "print_bitmap":
         byte[] byteArray = call.argument("header");
         String body = call.argument("body");
@@ -166,9 +172,11 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         mPrinter.print(footer);
         mPrinter.setFeedRow(1);
         result.success("DONE");
+        break;
       case "print_receipt":
         String receipt_details = call.argument("receipt_details");
         mPrinter.print(receipt_details);
+        break;
     }
 
   }
@@ -219,7 +227,7 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
       if(barcodeEntity.getResultCode() == BarcodeDecoder.DECODE_SUCCESS){
         events.success(barcodeEntity.getBarcodeData());
       }else{
-        events.success(null);
+        events.error("01", "BARCODE FAILURE", "BARCODE FAILURE");
       }
     });
 
