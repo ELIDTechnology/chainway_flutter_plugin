@@ -115,7 +115,6 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
           result.success(true);
         }else{
           barcodeDecoder.open(context);
-          Log.e(TAG,"open()==========================:"+ barcodeDecoder.open(context));
           result.success(true);
         }
       case "barcode_scan":
