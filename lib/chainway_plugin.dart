@@ -2,12 +2,12 @@ import 'package:flutter/services.dart';
 
 class ChainwayPlugin {
   final platform = const MethodChannel('chainway');
-  Future<void> barcodeInitialize() async {
+  Future<bool> barcodeInitialize() async {
     return await platform.invokeMethod('barcode_init');
   }
 
   Future<void> startScan() async {
-    return await platform.invokeMethod('scan');
+    return await platform.invokeMethod('barcode_scan');
   }
 
   Future<void> stopScan() async {
