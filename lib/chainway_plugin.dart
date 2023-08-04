@@ -45,6 +45,15 @@ class ChainwayPlugin {
     return await platform.invokeMethod('print_bitmap', request);
   }
 
+  Future<String> print_tests({
+    required Uint8List header,
+  }) async {
+    var request = {
+      "test": header,
+    };
+    return await platform.invokeMethod('print_test', request);
+  }
+
   Future<void> print_receipt() async {
     return await platform.invokeMethod('print_receipt');
   }

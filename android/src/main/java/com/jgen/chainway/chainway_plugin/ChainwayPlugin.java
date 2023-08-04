@@ -158,19 +158,30 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         float scaleHeight =scaleWidth;
         matrix.postScale(scaleWidth, scaleHeight);
         Bitmap headerBitmap = Bitmap.createBitmap(a, 0, 0, width,height, matrix, true);
-        Bitmap qrCode = generateBitmap(qr.toString(),400,400);
+        Bitmap qrCode = generateBitmap(qr.toString(),350,350);
         mPrinter.clearCache();
-        mPrinter.setPrintRowSpacing(0);
-        mPrinter.setPrintRowSpacing(14);
+        mPrinter.setPrintSpeed(5);
+        mPrinter.setPrintRowSpacing(4);
         mPrinter.print(headerBitmap);
-        mPrinter.setFeedRow(1);
         mPrinter.print(body);
-        mPrinter.setFeedRow(1);
         mPrinter.print(qrCode);
-        mPrinter.setFeedRow(1);
-        mPrinter.setPrintRowSpacing(8);
         mPrinter.print(footer);
-        mPrinter.setFeedRow(1);
+
+        result.success("DONE");
+        break;
+      case "print_test":
+        byte[] byteArrays = call.argument("test");
+        Bitmap b = BitmapFactory.decodeByteArray(byteArrays, 0, byteArrays.length);
+        Matrix matrixb = new Matrix();
+        int widthb = b.getWidth();
+        int heightb = b.getHeight();
+        int newWidthb = 384;
+        float scaleWidthb = ((float) newWidthb) / widthb;
+        float scaleHeightb =scaleWidthb;
+        matrixb.postScale(newWidthb, scaleHeightb);
+        Bitmap test = Bitmap.createBitmap(b, 0, 0, widthb,heightb, matrixb, true);
+        mPrinter.clearCache();
+        mPrinter.print(test);
         result.success("DONE");
         break;
       case "print_receipt":
