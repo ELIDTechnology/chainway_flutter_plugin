@@ -186,7 +186,11 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         break;
       case "print_receipt":
         String receipt_details = call.argument("receipt_details");
+        mPrinter.clearCache();
+        mPrinter.setPrintSpeed(5);
+        mPrinter.setPrintRowSpacing(10);
         mPrinter.print(receipt_details);
+        result.success("DONE");
         break;
     }
 

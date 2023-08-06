@@ -54,8 +54,11 @@ class ChainwayPlugin {
     return await platform.invokeMethod('print_test', request);
   }
 
-  Future<void> print_receipt() async {
-    return await platform.invokeMethod('print_receipt');
+  Future<String> print_receipt(String receipt) async {
+    var request = {
+      "receipt_details": receipt,
+    };
+    return await platform.invokeMethod('print_receipt', request);
   }
 
   Stream<String> get barcodeStream {
