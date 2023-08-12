@@ -15,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
@@ -141,8 +142,8 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
       case "print_qr_code":
         String barcode_details = call.argument("print_qr_code");
         Log.e("EWQEOWPQ", barcode_details);
-        Bitmap bitmap=generateBitmap(barcode_details.toString(),320,320);
-        mPrinter.print(bitmap);
+//        Bitmap bitmap=generateBitmap(barcode_details.toString(),320,320);
+//        mPrinter.print(bitmap);
         break;
       case "print_bitmap":
         byte[] byteArray = call.argument("header");
@@ -158,12 +159,12 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         float scaleHeight =scaleWidth;
         matrix.postScale(scaleWidth, scaleHeight);
         Bitmap headerBitmap = Bitmap.createBitmap(a, 0, 0, width,height, matrix, true);
-        Bitmap qrCode = generateBitmap(qr.toString(),350,350);
+        Bitmap qrCode = generateBitmap(qr.toString(),384,300);
         mPrinter.clearCache();
         mPrinter.setPrintSpeed(5);
-        mPrinter.setPrintRowSpacing(4);
+        mPrinter.setPrintRowSpacing(2);
         mPrinter.print(headerBitmap);
-        mPrinter.print(body);
+        mPrinter.print(body.trim());
         mPrinter.print(qrCode);
         mPrinter.print(footer);
 
@@ -213,12 +214,29 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
           }
         }
       }
-      return Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.RGB_565);
+
+      Bitmap qrBitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.RGB_565);
+
+      // Calculate the margin to center the QR code
+      int paperWidth = 384;
+      int marginLeft = (paperWidth - width) / 2;
+      int marginTop = 1; // Adjust this value to reduce space at the top
+
+      // Create a new bitmap with the desired size
+      Bitmap finalBitmap = Bitmap.createBitmap(paperWidth, height + marginTop, Bitmap.Config.RGB_565);
+      Canvas canvas = new Canvas(finalBitmap);
+      canvas.drawColor(Color.WHITE); // Fill with white
+      canvas.drawBitmap(qrBitmap, marginLeft, marginTop, null); // Draw QR code at the center
+
+      return finalBitmap;
+
     } catch (WriterException e) {
       e.printStackTrace();
     }
     return null;
   }
+
+
 
   private void start(){
     barcodeDecoder.startScan();
