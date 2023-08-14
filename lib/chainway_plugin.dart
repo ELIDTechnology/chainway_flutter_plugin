@@ -18,8 +18,8 @@ class ChainwayPlugin {
     return await platform.invokeMethod('barcode_close"');
   }
 
-  Future<void> init_print() async {
-    return await platform.invokeMethod('init_printer');
+  Future<bool> init_print() async {
+    return await platform.invokeMethod('printer_init');
   }
 
   Future<void> print_speed() async {
@@ -66,8 +66,8 @@ class ChainwayPlugin {
     return eventChannel.receiveBroadcastStream().cast<String>();
   }
 
-  static Stream<String> get printerCallback {
-    const eventChannel = EventChannel('printer_callback');
+  Stream<String> get printerCallback {
+    const eventChannel = EventChannel('chainway_printer');
     return eventChannel.receiveBroadcastStream().cast<String>();
   }
 }

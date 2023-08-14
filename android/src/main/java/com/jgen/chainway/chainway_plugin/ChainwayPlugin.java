@@ -80,6 +80,7 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
   /// when the Flutter Engine is detached from the Activity
   private MethodChannel channel;
   private EventChannel eventChannel;
+  private EventChannel eventChannelPrinter;
 
   BarcodeDecoder barcodeDecoder= BarcodeFactory.getInstance().getBarcodeDecoder();
   private Context context;
@@ -92,13 +93,15 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
     channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "chainway");
     eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "chainway_stream");
+    eventChannelPrinter = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "chainway_printer");
+
     channel.setMethodCallHandler(this);
     eventChannel.setStreamHandler(this);
     context = flutterPluginBinding.getApplicationContext();
 
     try {
       mPrinter = Printer.getInstance();
-      mPrinter.init(0);
+
 
     } catch (ConfigurationException e) {
       throw new RuntimeException(e);
@@ -130,9 +133,8 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         break;
       case "printer_init":
         mPrinter.init(0);
-        mPrinter.setPrintLeftMargin(50);
-        mPrinter.setPrintRightMargin(50);
-        mPrinter.setPrintRowSpacing(33);
+      new PrinterEventChannel(eventChannelPrinter, mPrinter);
+
         result.success(true);
         break;
       case "printer_speed":
