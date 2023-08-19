@@ -35,9 +35,11 @@ class ChainwayPlugin {
       {required Uint8List header,
       required String body,
       required String qrCode,
+      required bool isHeader,
       required String footer}) async {
     var request = {
       "header": header,
+      "isHeader": isHeader,
       "body": body,
       "qr": qrCode,
       "footer": footer,

@@ -149,6 +149,7 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         break;
       case "print_bitmap":
         byte[] byteArray = call.argument("header");
+        boolean isHeader = call.argument("isHeader");
         String body = call.argument("body");
         String qr = call.argument("qr");
         String footer = call.argument("footer");
@@ -165,7 +166,10 @@ public class ChainwayPlugin implements FlutterPlugin, MethodCallHandler, EventCh
         mPrinter.clearCache();
         mPrinter.setPrintSpeed(5);
         mPrinter.setPrintRowSpacing(2);
-        mPrinter.print(headerBitmap);
+        if(isHeader){
+          mPrinter.print(headerBitmap);
+        }
+
         mPrinter.print(body.trim());
         mPrinter.print(qrCode);
         mPrinter.print(footer);
